@@ -9,6 +9,7 @@ import '../calendar_controller_provider.dart';
 import '../calendar_event_data.dart';
 import '../components/components.dart';
 import '../constants.dart';
+import '../enumerations.dart';
 import '../event_controller.dart';
 import '../extensions.dart';
 import '../typedefs.dart';
@@ -108,6 +109,9 @@ class MonthView<T> extends StatefulWidget {
   /// This method will be called when user long press on calendar.
   final DatePressCallback? onDateLongPress;
 
+  /// Month Start Weekday
+  final WeekDays startWeekday;
+
   /// Main [Widget] to display month view.
   const MonthView({
     Key? key,
@@ -129,6 +133,7 @@ class MonthView<T> extends StatefulWidget {
     this.onCellTap,
     this.onEventTap,
     this.onDateLongPress,
+    this.startWeekday = WeekDays.monday,
   }) : super(key: key);
 
   @override
@@ -231,8 +236,7 @@ class MonthViewState<T> extends State<MonthView<T>> {
     super.didChangeDependencies();
 
     if (!_controllerAdded) {
-      _controller = widget.controller ??
-          CalendarControllerProvider.of<T>(context).controller;
+      _controller = widget.controller ?? CalendarControllerProvider.of<T>(context).controller;
 
       // Reloads the view if there is any change in controller or user adds
       // new events.
@@ -299,6 +303,7 @@ class MonthViewState<T> extends State<MonthView<T>> {
                               cellRatio: widget.cellAspectRatio,
                               date: date,
                               showBorder: widget.showBorder,
+                              startWeekday: widget.startWeekday,
                             ),
                           ),
                         ),
@@ -370,8 +375,7 @@ class MonthViewState<T> extends State<MonthView<T>> {
   }
 
   /// Default cell builder. Used when [widget.cellBuilder] is null
-  Widget _defaultCellBuilder<T>(
-      date, List<CalendarEventData<T>> events, isToday, isInMonth) {
+  Widget _defaultCellBuilder<T>(date, List<CalendarEventData<T>> events, isToday, isInMonth) {
     return FilledCell<T>(
       date: date,
       shouldHighlight: isToday,
@@ -415,11 +419,8 @@ class MonthViewState<T> extends State<MonthView<T>> {
   /// Arguments [duration] and [curve] will override default values provided
   /// as [MonthView.pageTransitionDuration] and [MonthView.pageTransitionCurve]
   /// respectively.
-  Future<void> animateToPage(int page,
-      {Duration? duration, Curve? curve}) async {
-    await _pageController.animateToPage(page,
-        duration: duration ?? widget.pageTransitionDuration,
-        curve: curve ?? widget.pageTransitionCurve);
+  Future<void> animateToPage(int page, {Duration? duration, Curve? curve}) async {
+    await _pageController.animateToPage(page, duration: duration ?? widget.pageTransitionDuration, curve: curve ?? widget.pageTransitionCurve);
   }
 
   /// Returns current page number.
@@ -438,8 +439,7 @@ class MonthViewState<T> extends State<MonthView<T>> {
   /// Arguments [duration] and [curve] will override default values provided
   /// as [MonthView.pageTransitionDuration] and [MonthView.pageTransitionCurve]
   /// respectively.
-  Future<void> animateToMonth(DateTime month,
-      {Duration? duration, Curve? curve}) async {
+  Future<void> animateToMonth(DateTime month, {Duration? duration, Curve? curve}) async {
     if (month.isBefore(_minDate) || month.isAfter(_maxDate)) {
       throw "Invalid date selected.";
     }
@@ -451,8 +451,7 @@ class MonthViewState<T> extends State<MonthView<T>> {
   }
 
   /// Returns the current visible date in month view.
-  DateTime get currentDate =>
-      DateTime(_currentDate.year, _currentDate.month, _currentDate.day);
+  DateTime get currentDate => DateTime(_currentDate.year, _currentDate.month, _currentDate.day);
 }
 
 /// A single month page.
@@ -468,6 +467,7 @@ class _MonthPageBuilder<T> extends StatelessWidget {
   final double height;
   final CellTapCallback<T>? onCellTap;
   final DatePressCallback? onDateLongPress;
+  final WeekDays startWeekday;
 
   const _MonthPageBuilder({
     Key? key,
@@ -482,11 +482,12 @@ class _MonthPageBuilder<T> extends StatelessWidget {
     required this.height,
     required this.onCellTap,
     required this.onDateLongPress,
+    this.startWeekday = WeekDays.monday,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final monthDays = date.datesOfMonths;
+    final monthDays = date.datesOfMonthsWithStart(startWeekday);
     return Container(
       width: width,
       height: height,

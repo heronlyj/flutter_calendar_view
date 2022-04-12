@@ -4,6 +4,8 @@
 
 import 'package:flutter/material.dart';
 
+import 'enumerations.dart';
+
 extension DateTimeExtensions on DateTime {
   /// Compares only [day], [month] and [year] of [DateTime].
   bool compareWithoutTime(DateTime date) {
@@ -33,8 +35,7 @@ extension DateTimeExtensions on DateTime {
   int getDayDifference(DateTime date) => difference(date).inDays.abs();
 
   /// Gets difference of weeks between [date] and calling object.
-  int getWeekDifference(DateTime date) =>
-      (firstDayOfWeek.difference(date.firstDayOfWeek).inDays.abs() / 7).ceil();
+  int getWeekDifference(DateTime date) => (firstDayOfWeek.difference(date.firstDayOfWeek).inDays.abs() / 7).ceil();
 
   /// Returns The List of date of Current Week
   /// Day will start from Monday to Sunday.
@@ -63,6 +64,37 @@ extension DateTimeExtensions on DateTime {
     ];
   }
 
+  /// Returns The List of date of Current Week
+  /// Day will start from Monday to Sunday.
+  ///
+  /// ex: if Current Date instance is 8th and day is wednesday then weekDates
+  /// will return dates
+  /// [6,7,8,9,10,11,12]
+  /// Where on 6th there will be monday and on 12th there will be Sunday
+  List<DateTime> datesOfWeekWithStart(WeekDays startWeekday) {
+    // weekday can very from 1(Monday) to 7(Sunday).
+    // If we have a date that has week day of 3 (Wednesday) and
+    // we want to find first date of the week that contains this date
+    // we need to move 2 days back. Wednesday -> Tuesday -> Monday.
+    // That is same as 3 - 1 (weekday - 1).
+    //
+
+    final startWeek = startWeekday.index + 1;
+    final subtracDays = weekday < startWeek ? (weekday + 7 - startWeek) : (weekday - startWeek);
+
+    final start = subtract(Duration(days: subtracDays.abs()));
+
+    return [
+      start,
+      start.add(Duration(days: 1)),
+      start.add(Duration(days: 2)),
+      start.add(Duration(days: 3)),
+      start.add(Duration(days: 4)),
+      start.add(Duration(days: 5)),
+      start.add(Duration(days: 6)),
+    ];
+  }
+
   DateTime get firstDayOfWeek => subtract(Duration(days: weekday - 1));
   DateTime get lastDayOfWeek => add(Duration(days: 7 - weekday));
 
@@ -74,6 +106,18 @@ extension DateTimeExtensions on DateTime {
     final monthDays = <DateTime>[];
     for (var i = 1, start = 1; i < 7; i++, start += 7) {
       monthDays.addAll(DateTime(year, month, start).datesOfWeek());
+    }
+    return monthDays;
+  }
+
+  /// Returns list of all dates of [month].
+  /// All the dates are week based that means it will return array of size 42
+  /// which will contain 6 weeks that is the maximum number of weeks a month
+  /// can have.
+  List<DateTime> datesOfMonthsWithStart(WeekDays startWeekday) {
+    final monthDays = <DateTime>[];
+    for (var i = 1, start = 1; i < 7; i++, start += 7) {
+      monthDays.addAll(DateTime(year, month, start).datesOfWeekWithStart(startWeekday));
     }
     return monthDays;
   }
@@ -98,15 +142,9 @@ extension DateTimeExtensions on DateTime {
 }
 
 extension ColorExtension on Color {
-  Color get accent =>
-      (blue / 2 >= 255 / 2 || red / 2 >= 255 / 2 || green / 2 >= 255 / 2)
-          ? Colors.black
-          : Colors.white;
+  Color get accent => (blue / 2 >= 255 / 2 || red / 2 >= 255 / 2 || green / 2 >= 255 / 2) ? Colors.black : Colors.white;
 }
 
 extension MaterialColorExtension on MaterialColor {
-  Color get accent =>
-      (blue / 2 >= 255 / 2 || red / 2 >= 255 / 2 || green / 2 >= 255 / 2)
-          ? Colors.black
-          : Colors.white;
+  Color get accent => (blue / 2 >= 255 / 2 || red / 2 >= 255 / 2 || green / 2 >= 255 / 2) ? Colors.black : Colors.white;
 }
